@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Químico - Juego Educativo</title>
+    <meta name="description" content="Juego educativo de Monopoly con compuestos químicos. Aprende química jugando con Curie y Lawrence.">
+    <style>
+        body { 
+            font-family: "Segoe UI", sans-serif; 
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+            text-align: center; 
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #1565c0;
+            margin-bottom: 15px;
+            font-weight: 300;
+            font-size: 2.2em;
+        }
+        #tablero {
+            position: relative;
+            width: 650px;
+            height: 650px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            grid-template-rows: repeat(11, 1fr);
+            gap: 1px;
+            border-radius: 8px;
+            background: #1976d2;
+            border: 2px solid #0d47a1;
+            box-shadow: 0 4px 12px rgba(13, 71, 161, 0.2);
+        }
+        .casilla {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            position: relative;
+            border-radius: 2px;
+            text-align: center;
+            padding: 2px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: white;
+            font-weight: 500;
+        }
+        .casilla:hover {
+            transform: scale(1.03); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 2;
+        }
+        .jugador {
+            font-weight: bold;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1px;
+            transition: transform 0.3s;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 2px solid white;
+            font-size: 10px;
+        }
+        .jugador1 {
+            background: linear-gradient(135deg, #e91e63, #ad1457);
+        }
+        .jugador2 {
+            background: linear-gradient(135deg, #ff9800, #ef6c00);
+        }
+        #dado {
+            width: 70px;
+            height: 70px;
+            margin: 15px auto; 
+            background: white;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border: 2px solid #1976d2;
+        }
+        #dado div {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            font-weight: bold;
+        }
+        button {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+            font-weight: 500;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #mensaje {
+            margin: 15px auto;
+            font-size: 15px;
+            color: #1565c0;
+            min-height: 20px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.9);
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid #bbdefb;
+        }
+        #ventanaAccion, #ventanaMejoras {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #1976d2;
+            border-radius: 12px;
+            padding: 25px;
+            z-index: 1000;
+            width: 320px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        #ventanaAccion button, #ventanaMejoras button {
+            margin: 8px 0;
+            display: block;
+            width: 100%;
+        }
+        #confeti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            pointer-events: none;
+            z-index: 2000;
+        }
+        .confeti {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            opacity: 0.8;
+            animation: caer 1s linear forwards;
+            border-radius: 50%;
+        }
+        @keyframes caer {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
+        }
+        #nombreCentro {
+            grid-column: 2 / 11;
+            grid-row: 2 / 11;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 300;
+            color: #1565c0;
+            text-align: center;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #bbdefb;
+            flex-direction: column;
+            gap: 8px;
+        }
+        #barraDinero {
+            width: 650px;
+            margin: 15px auto;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        .bar-container {
+            flex: 1;
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            border: 1px solid #bbdefb;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .bar-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1565c0;
+            font-size: 14px;
+        }
+        .bar {
+            height: 18px;
+            background: linear-gradient(90deg, #42a5f5, #2196f3);
+            color: white;
+            padding: 0 8px;
+            border-radius: 4px;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        #propiedades {
+            width: 650px;
+            margin: 15px auto;
+            text-align: left;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            border: 1px solid #bbdefb;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .propiedades-jugador {
+            flex: 1;
+        }
+        .propiedades-titulo {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1565c0;
+            font-size: 14px;
+        }
+        .ganador {
+            animation: pulse 1s infinite;
+            border: 2px solid #ffd600 !important;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .matraz {
+            position: absolute;
+            bottom: 3px;
+            width: 10px;
+            height: 12px;
+            background: #4caf50;
+            border-radius: 50% 50% 0 0;
+            z-index: 5;
+            border: 1px solid #2e7d32;
+        }
+        .matraz::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 2px;
+            background: #4caf50;
+            border-radius: 0 0 1px 1px;
+        }
+        .matraz-1 { left: 3px; }
+        .matraz-2 { left: 15px; }
+        .matraz-3 { left: 27px; }
+        .matraz-4 { left: 39px; }
+        .laboratorio {
+            background: linear-gradient(135deg, #66bb6a, #4caf50) !important;
+            color: white;
+        }
+        .casilla-especial {
+            font-size: 9px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 2px;
+        }
+        .icono-casilla {
+            font-size: 16px;
+        }
+        .controles {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 10px auto;
+            border: 1px solid #bbdefb;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .compuesto-icono {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 5px 0;
+            font-size: 12px;
+            color: #856404;
+        }
+        .instrucciones {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 650px;
+            border: 1px solid #bbdefb;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            text-align: left;
+        }
+        .instrucciones h3 {
+            color: #1565c0;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🧪 MONOPOLY QUÍMICO</h1>
+
+<div class="instrucciones">
+    <h3>🎯 Cómo Jugar:</h3>
+    <p><strong>Objetivo:</strong> Ser el primer jugador en obtener 5 monopolios completos de categorías químicas.</p>
+    <p><strong>Turnos:</strong> Los jugadores Curie y Lawrence se turnan para lanzar el dado y mover sus fichas.</p>
+    <p><strong>Propiedades:</strong> Puedes comprar compuestos químicos cuando caes en casillas libres.</p>
+    <p><strong>Mejoras:</strong> Construye matraces (+$20 alquiler) y laboratorios (x3 alquiler) en tus propiedades.</p>
+    <p><strong>Monopolio:</strong> Cuando tienes todas las propiedades de una categoría, el alquiler se duplica.</p>
+</div>
+
+<div id="tablero"></div>
+
+<div class="controles">
+    <div id="dado"><div id="caraDado">🎲</div></div>
+    <button onclick="jugarTurno()">🎯 Tirar Dado</button>
+    <button onclick="mostrarMejoras()">🔬 Mejorar Propiedades</button>
+    <div id="mensaje"></div>
+    <div id="debugInfo" class="debug-info"></div>
+</div>
+
+<div id="barraDinero"></div>
+<div id="propiedades"></div>
+
+<div id="ventanaAccion">
+    <div id="accionTexto"></div>
+    <button onclick="comprarPropiedad()">🛒 Comprar Propiedad</button>
+    <button onclick="pagarAlquiler()">💰 Pagar Alquiler</button>
+    <button onclick="cerrarAccion()">Cerrar</button>
+</div>
+
+<div id="ventanaMejoras">
+    <div id="mejorasTexto"></div>
+    <button onclick="construirMatraz()">🧪 Construir Matraz (+$20)</button>
+    <button onclick="construirLaboratorio()">🏢 Construir Laboratorio (x3)</button>
+    <button onclick="cerrarMejoras()">Cerrar</button>
+</div>
+
+<div id="confeti"></div>
+
+<audio id="roll" src="https://www.soundjay.com/misc/sounds/dice-roll-1.mp3"></audio>
+<audio id="compra" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="pago" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+<audio id="construccion" src="https://www.soundjay.com/mechanical/sounds/hammering-1.mp3"></audio>
+
+<script>
+// --- Configuración ---
+const categorias = [
+    {
+        nombre: "Óxidos Metálicos", 
+        color: "#ffebee", 
+        precioBase: 60, 
+        rentaBase: 15,
+        casillas: [1, 2, 3],
+        compuestos: ["Fe₂O₃", "CaO", "CuO"],
+        icono: "⚗️"
+    },
+    {
+        nombre: "Óxidos No Metálicos", 
+        color: "#fff3e0", 
+        precioBase: 60, 
+        rentaBase: 15,
+        casillas: [5, 6, 7],
+        compuestos: ["CO₂", "SO₂", "N₂O₅"],
+        icono: "💨"
+    },
+    {
+        nombre: "Ácidos Hidrácidos", 
+        color: "#e8f5e8", 
+        precioBase: 80, 
+        rentaBase: 20,
+        casillas: [9, 10, 11],
+        compuestos: ["HCl", "HBr", "HI"],
+        icono: "🧪"
+    },
+    {
+        nombre: "Ácidos Oxácidos", 
+        color: "#e3f2fd", 
+        precioBase: 100, 
+        rentaBase: 25,
+        casillas: [13, 14, 15],
+        compuestos: ["H₂SO₄", "HNO₃", "H₃PO₄"],
+        icono: "⚡"
+    },
+    {
+        nombre: "Sales Binarias", 
+        color: "#f3e5f5", 
+        precioBase: 120, 
+        rentaBase: 30,
+        casillas: [17, 18, 19],
+        compuestos: ["NaCl", "KBr", "CaF₂"],
+        icono: "🧂"
+    },
+    {
+        nombre: "Sales Oxisales", 
+        color: "#fff8e1", 
+        precioBase: 140, 
+        rentaBase: 35,
+        casillas: [21, 22, 23],
+        compuestos: ["Na₂SO₄", "KNO₃", "CaCO₃"],
+        icono: "💎"
+    },
+    {
+        nombre: "Hidróxidos", 
+        color: "#efebe9", 
+        precioBase: 160, 
+        rentaBase: 40,
+        casillas: [25, 26, 27],
+        compuestos: ["NaOH", "KOH", "Ca(OH)₂"],
+        icono: "💧"
+    },
+    {
+        nombre: "Hidruros", 
+        color: "#eceff1", 
+        precioBase: 180, 
+        rentaBase: 45,
+        casillas: [29, 30, 31],
+        compuestos: ["NaH", "CaH₂", "LiH"],
+        icono: "🔥"
+    }
+];
+
+const totalCasillas = 40;
+let casillas = Array(totalCasillas).fill(null).map((_, i) => ({tipo: "VACIO", dueno: null}));
+
+// Inicializar propiedades
+categorias.forEach(cat => {
+    cat.casillas.forEach((idx, i) => {
+        casillas[idx] = {
+            tipo: "PROPIEDAD",
+            categoria: cat.nombre,
+            color: cat.color,
+            dueno: null,
+            precio: cat.precioBase,
+            alquiler: cat.rentaBase,
+            nombre: cat.compuestos[i],
+            matraces: 0,
+            tieneLaboratorio: false,
+            icono: cat.icono
+        };
+    });
+});
+
+// Casillas especiales
+casillas[0] = {tipo: "SALIDA", nombre: "SALIDA", icono: "🏁"};
+casillas[4] = {tipo: "SUERTE", nombre: "SUERTE", icono: "🍀"};
+casillas[8] = {tipo: "IMPROVISADO", nombre: "IMPROVISADO", icono: "⚡"};
+casillas[12] = {tipo: "SUERTE", nombre: "SUERTE", icono: "🍀"};
+casillas[16] = {tipo: "IMPROVISADO", nombre: "IMPROVISADO", icono: "⚡"};
+casillas[20] = {tipo: "SUERTE", nombre: "SUERTE", icono: "🍀"};
+casillas[24] = {tipo: "IMPROVISADO", nombre: "IMPROVISADO", icono: "⚡"};
+casillas[28] = {tipo: "SUERTE", nombre: "SUERTE", icono: "🍀"};
+casillas[32] = {tipo: "IMPROVISADO", nombre: "IMPROVISADO", icono: "⚡"};
+casillas[36] = {tipo: "SUERTE", nombre: "SUERTE", icono: "🍀"};
+casillas[39] = {tipo: "CARCEL", nombre: "CÁRCEL", icono: "🔒"};
+
+// Añadir propiedades adicionales
+const categoriasAdicionales = [
+    {
+        nombre: "Peróxidos", 
+        color: "#fce4ec", 
+        precioBase: 70, 
+        rentaBase: 18,
+        casillas: [33, 34, 35],
+        compuestos: ["H₂O₂", "Na₂O₂", "BaO₂"],
+        icono: "💥"
+    },
+    {
+        nombre: "Sales Ácidas", 
+        color: "#e0f2f1", 
+        precioBase: 90, 
+        rentaBase: 22,
+        casillas: [37, 38],
+        compuestos: ["NaHCO₃", "KHSO₄"],
+        icono: "🌡️"
+    }
+];
+
+categoriasAdicionales.forEach(cat => {
+    cat.casillas.forEach((idx, i) => {
+        casillas[idx] = {
+            tipo: "PROPIEDAD",
+            categoria: cat.nombre,
+            color: cat.color,
+            dueno: null,
+            precio: cat.precioBase,
+            alquiler: cat.rentaBase,
+            nombre: cat.compuestos[i],
+            matraces: 0,
+            tieneLaboratorio: false,
+            icono: cat.icono
+        };
+    });
+});
+
+// Jugadores
+let jugadores = [
+    {nombre: "Curie", pos: 0, dinero: 500, propiedades: [], clase: "jugador1"},
+    {nombre: "Lawrence", pos: 0, dinero: 500, propiedades: [], clase: "jugador2"}
+];
+let turno = 0; 
+let ventanaActiva = false;
+let juegoTerminado = false;
+let propiedadSeleccionada = null;
+
+// Cartas Suerte/Imprevisto
+const cartas = [
+    {texto: "Recibes $50 por descubrimiento químico", accion: j => j.dinero += 50},
+    {texto: "Pierdes $30 por accidente en laboratorio", accion: j => j.dinero -= 30},
+    {texto: "Avanza 3 casillas", accion: j => j.pos = (j.pos + 3) % totalCasillas},
+    {texto: "Ve a la cárcel", accion: j => j.pos = 39},
+    {texto: "Recibe $80 por monopolio de categoría", accion: j => j.dinero += 80},
+    {texto: "Pierdes $40 por multa ambiental", accion: j => j.dinero -= 40}
+];
+
+// Función para debug
+function actualizarDebugInfo() {
+    const debugDiv = document.getElementById("debugInfo");
+    const jugadorActual = jugadores[turno];
+    const casillaActual = casillas[jugadorActual.pos];
+    
+    debugDiv.innerHTML = `
+        <strong>Información del Juego:</strong><br>
+        Turno: ${jugadorActual.nombre} ($${jugadorActual.dinero})<br>
+        Posición: ${jugadorActual.pos} - ${casillaActual.nombre}<br>
+        Tipo: ${casillaActual.tipo} | Dueño: ${casillaActual.dueno || "Ninguno"}
+    `;
+}
+
+// Dibujar tablero
+function dibujarTablero(){
+    const tablero = document.getElementById("tablero"); 
+    tablero.innerHTML = "";
+    
+    let grid = [];
+    for(let r = 0; r < 11; r++){
+        grid[r] = [];
+        for(let c = 0; c < 11; c++) grid[r][c] = null;
+    }
+    
+    let idx = 0;
+    for(let c = 0; c < 11; c++) grid[0][c] = idx++;
+    for(let r = 1; r < 10; r++) grid[r][10] = idx++;
+    for(let c = 9; c >= 0; c--) grid[10][c] = idx++;
+    for(let r = 9; r > 0; r--) grid[r][0] = idx++;
+    
+    for(let r = 0; r < 11; r++){
+        for(let c = 0; c < 11; c++){
+            const div = document.createElement("div"); 
+            div.className = "casilla";
+            
+            if(r > 0 && r < 10 && c > 0 && c < 10){
+                div.id = "nombreCentro"; 
+                div.innerHTML = `
+                    <div style="font-size: 22px; margin-bottom: 8px;">🧪</div>
+                    <div style="font-weight: 400;">MONOPOLY</div>
+                    <div style="font-weight: 400;">QUÍMICO</div>
+                `;
+                tablero.appendChild(div); 
+                continue;
+            }
+            
+            if(grid[r][c] !== null && grid[r][c] < totalCasillas){
+                div.id = "casilla-" + grid[r][c]; 
+                let info = casillas[grid[r][c]];
+                
+                if(info.tipo === "PROPIEDAD"){
+                    div.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 1px;">
+                            <div class="compuesto-icono">${info.icono}</div>
+                            <div>${info.nombre}</div>
+                        </div>
+                    `;
+                    div.style.backgroundColor = info.color;
+                    div.title = info.dueno ? `${info.dueno} • 🧪${info.matraces} • ${info.tieneLaboratorio ? '🏢' : ''}` : "Disponible";
+                    
+                    if(info.dueno) {
+                        const jugador = jugadores.find(j => j.nombre === info.dueno);
+                        if(jugador) {
+                            div.style.border = `2px solid ${jugador.clase === "jugador1" ? "#e91e63" : "#ff9800"}`;
+                        }
+                    }
+                    
+                    if(info.matraces > 0) {
+                        for(let i = 0; i < info.matraces; i++) {
+                            const matraz = document.createElement("div");
+                            matraz.className = `matraz matraz-${i+1}`;
+                            div.appendChild(matraz);
+                        }
+                    }
+                    
+                    if(info.tieneLaboratorio) {
+                        div.classList.add("laboratorio");
+                    }
+                } else {
+                    div.className = "casilla casilla-especial";
+                    div.innerHTML = `
+                        <div class="icono-casilla">${info.icono}</div>
+                        <div>${info.nombre}</div>
+                    `;
+                    if(info.tipo === "SALIDA") div.style.backgroundColor = "#e8f5e8";
+                    else if(info.tipo === "CARCEL") div.style.backgroundColor = "#ffebee";
+                    else if(info.tipo === "SUERTE") div.style.backgroundColor = "#fff8e1";
+                    else if(info.tipo === "IMPROVISADO") div.style.backgroundColor = "#e3f2fd";
+                }
+            }
+            tablero.appendChild(div);
+        }
+    }
+    actualizarJugadores(); 
+    actualizarDinero(); 
+    actualizarPropiedades();
+    actualizarDebugInfo();
+}
+
+// Actualizar jugadores y dinero
+function actualizarJugadores(){
+    document.querySelectorAll(".jugador").forEach(e => e.remove()); 
+    jugadores.forEach(j => {
+        const div = document.createElement("div"); 
+        div.className = "jugador " + j.clase; 
+        div.textContent = j.nombre[0]; 
+        const casillaDiv = document.getElementById("casilla-" + j.pos);
+        if (casillaDiv) {
+            casillaDiv.appendChild(div);
+        }
+    });
+}
+
+function actualizarDinero(){
+    const barra = document.getElementById("barraDinero"); 
+    barra.innerHTML = ""; 
+    
+    jugadores.forEach(j => {
+        const container = document.createElement("div");
+        container.className = "bar-container";
+        
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.textContent = `${j.nombre}: $${j.dinero}`;
+        container.appendChild(label);
+        
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        const porcentaje = Math.min(j.dinero / 500 * 100, 100);
+        bar.style.width = `${porcentaje}%`;
+        bar.textContent = `$${j.dinero}`;
+        container.appendChild(bar);
+        
+        barra.appendChild(container);
+    });
+}
+
+function actualizarPropiedades(){
+    const propiedadesDiv = document.getElementById("propiedades");
+    propiedadesDiv.innerHTML = "";
+    
+    jugadores.forEach(j => {
+        const container = document.createElement("div");
+        container.className = "propiedades-jugador";
+        
+        const titulo = document.createElement("div");
+        titulo.className = "propiedades-titulo";
+        titulo.textContent = `${j.nombre}:`;
+        container.appendChild(titulo);
+        
+        const lista = document.createElement("div");
+        const propiedadesConMejoras = j.propiedades.map(prop => {
+            const casilla = casillas.find(c => c.nombre === prop);
+            if (casilla) {
+                let mejoraInfo = "";
+                if (casilla.matraces > 0) mejoraInfo += ` 🧪${casilla.matraces}`;
+                if (casilla.tieneLaboratorio) mejoraInfo += " 🏢";
+                return `${prop}${mejoraInfo}`;
+            }
+            return prop;
+        });
+        lista.textContent = propiedadesConMejoras.length > 0 ? propiedadesConMejoras.join(", ") : "Sin propiedades";
+        container.appendChild(lista);
+        
+        propiedadesDiv.appendChild(container);
+    });
+}
+
+// Dado
+function tirarDado(callback){
+    const dadoDiv = document.getElementById("caraDado"); 
+    const rollAudio = document.getElementById("roll"); 
+    rollAudio.play(); 
+    let vueltas = 0; 
+    const anim = setInterval(() => {
+        vueltas++; 
+        const num = Math.floor(Math.random() * 6) + 1; 
+        dadoDiv.textContent = num; 
+        if(vueltas > 10){
+            clearInterval(anim); 
+            callback(num);
+        }
+    }, 100);
+}
+
+// Movimiento
+async function moverJugador(jugador, dados){
+    for(let i = 0; i < dados; i++){
+        jugador.pos = (jugador.pos + 1) % totalCasillas; 
+        actualizarJugadores(); 
+        await new Promise(r => setTimeout(r, 250));
+    }
+}
+
+// Turno - CORREGIDO
+async function jugarTurno(){
+    if(ventanaActiva || juegoTerminado) return;
+    
+    const jugador = jugadores[turno];
+    
+    tirarDado(async (dado) => {
+        await moverJugador(jugador, dado);
+        
+        const pasoPorSalida = (jugador.pos - dado) < 0 || (jugador.pos - dado + totalCasillas) % totalCasillas > jugador.pos;
+        if(pasoPorSalida && jugador.pos !== 0){
+            jugador.dinero += 100; 
+            abrirVentana(`${jugador.nombre} pasó por SALIDA y recibe $100`, "info");
+        }
+        
+        const casilla = casillas[jugador.pos];
+        
+        if((casilla.tipo === "SUERTE" || casilla.tipo === "IMPROVISADO") && Math.random() < 0.7){
+            const carta = cartas[Math.floor(Math.random() * cartas.length)];
+            carta.accion(jugador);
+            abrirVentana(`Carta: ${carta.texto}`, "info");
+        }
+        else if(casilla.tipo === "PROPIEDAD" && !casilla.dueno){
+            abrirVentana(`${jugador.nombre}, ¿comprar ${casilla.nombre} (${casilla.categoria})? Precio: $${casilla.precio}`, "comprar");
+        }
+        else if(casilla.tipo === "PROPIEDAD" && casilla.dueno !== jugador.nombre){
+            const renta = calcularRenta(casilla);
+            if(jugador.dinero >= renta) {
+                jugador.dinero -= renta;
+                const dueño = jugadores.find(j => j.nombre === casilla.dueno);
+                dueño.dinero += renta;
+                document.getElementById("pago").play();
+                abrirVentana(`${jugador.nombre} pagó $${renta} a ${dueño.nombre}`, "info");
+            } else {
+                abrirVentana(`${jugador.nombre} no tiene dinero para pagar $${renta}. ¡Pierde!`, "info");
+                juegoTerminado = true;
+                const ganador = jugadores.find(j => j.nombre !== jugador.nombre);
+                alert(`${ganador.nombre} gana!`);
+                lanzarConfeti();
+            }
+        }
+        else if(casilla.tipo === "CARCEL"){
+            abrirVentana(`${jugador.nombre} está en la cárcel. Pierde turno.`, "info");
+        }
+        else if(casilla.tipo === "SALIDA"){
+            jugador.dinero += 100;
+            abrirVentana(`${jugador.nombre} en SALIDA +$100`, "info");
+        }
+        else {
+            abrirVentana(`${jugador.nombre} en casilla vacía.`, "info");
+        }
+        
+        actualizarDinero(); 
+        actualizarPropiedades();
+        actualizarDebugInfo();
+        
+        if(verificarGanador(jugador)) {
+            juegoTerminado = true;
+            alert(`${jugador.nombre} ganó con 5 monopolios! 🎉`);
+            lanzarConfeti();
+        }
+        
+        // CORRECCIÓN: Cambiar turno solo después de completar todas las acciones
+        turno = (turno + 1) % jugadores.length;
+        document.getElementById("mensaje").textContent = `Turno: ${jugadores[turno].nombre}`;
+        actualizarDebugInfo();
+    });
+}
+
+// Ventana acción
+function abrirVentana(texto, tipo){
+    ventanaActiva = true;
+    const ventana = document.getElementById("ventanaAccion");
+    document.getElementById("accionTexto").textContent = texto;
+    ventana.style.display = "block";
+    const botones = ventana.querySelectorAll("button");
+    botones.forEach(b => b.style.display = "none");
+    
+    if(tipo === "comprar"){
+        botones[0].style.display = "block";
+        botones[2].style.display = "block";
+    } else if(tipo === "pago"){
+        botones[1].style.display = "block";
+        botones[2].style.display = "block";
+    } else {
+        botones[2].style.display = "block";
+    }
+}
+
+function cerrarAccion(){
+    document.getElementById("ventanaAccion").style.display = "none"; 
+    ventanaActiva = false;
+}
+
+// CORRECCIÓN: Función de compra mejorada
+function comprarPropiedad(){
+    const jugador = jugadores[turno]; // Usar el turno actual, no calcularlo
+    const casilla = casillas[jugador.pos];
+    
+    console.log(`Compra intentada por: ${jugador.nombre}`);
+    console.log(`Dinero disponible: $${jugador.dinero}, Precio: $${casilla.precio}`);
+    
+    if(jugador.dinero >= casilla.precio){
+        jugador.dinero -= casilla.precio;
+        casilla.dueno = jugador.nombre;
+        jugador.propiedades.push(casilla.nombre);
+        document.getElementById("compra").play();
+        lanzarConfeti();
+        actualizarDinero();
+        actualizarPropiedades();
+        dibujarTablero();
+        cerrarAccion();
+        
+        console.log(`Compra exitosa: ${jugador.nombre} compró ${casilla.nombre}`);
+    } else {
+        alert(`Dinero insuficiente. ${jugador.nombre} tiene $${jugador.dinero} pero necesita $${casilla.precio}`);
+        cerrarAccion();
+    }
+}
+
+function pagarAlquiler(){
+    const jugador = jugadores[turno];
+    const casilla = casillas[jugador.pos];
+    
+    if(casilla.dueno && casilla.dueno !== jugador.nombre){
+        const renta = calcularRenta(casilla);
+        if(jugador.dinero >= renta) {
+            jugador.dinero -= renta;
+            const dueño = jugadores.find(j => j.nombre === casilla.dueno);
+            dueño.dinero += renta;
+            document.getElementById("pago").play();
+            alert(`${jugador.nombre} pagó $${renta} a ${dueño.nombre}`);
+            actualizarDinero();
+            cerrarAccion();
+        } else {
+            alert("Dinero insuficiente para alquiler");
+            cerrarAccion();
+        }
+    }
+}
+
+function calcularRenta(casilla){
+    const cat = casilla.categoria;
+    const jugadorDueño = jugadores.find(j => j.nombre === casilla.dueno);
+    const catProps = casillas.filter(c => c.tipo === "PROPIEDAD" && c.categoria === cat);
+    const tieneMonopolio = catProps.every(c => c.dueno === jugadorDueño.nombre);
+    
+    let rentaBase = casilla.alquiler;
+    if(tieneMonopolio) rentaBase *= 2;
+    rentaBase += casilla.matraces * 20;
+    if(casilla.tieneLaboratorio) rentaBase *= 3;
+    
+    return rentaBase;
+}
+
+// Funciones para mejoras
+function mostrarMejoras(){
+    const jugador = jugadores[turno];
+    const propiedadesDelJugador = jugador.propiedades;
+    
+    if(propiedadesDelJugador.length === 0) {
+        alert("No tienes propiedades");
+        return;
+    }
+    
+    let opcionesHTML = "<p>Selecciona propiedad para mejorar:</p>";
+    propiedadesDelJugador.forEach((prop, index) => {
+        const casilla = casillas.find(c => c.nombre === prop);
+        if(casilla) {
+            opcionesHTML += `<button onclick="seleccionarPropiedad(${casillas.indexOf(casilla)})">${prop} (🧪${casilla.matraces} ${casilla.tieneLaboratorio ? '🏢' : ''})</button>`;
+        }
+    });
+    
+    document.getElementById("mejorasTexto").innerHTML = opcionesHTML;
+    document.getElementById("ventanaMejoras").style.display = "block";
+    ventanaActiva = true;
+}
+
+function seleccionarPropiedad(indice){
+    propiedadSeleccionada = indice;
+    const casilla = casillas[indice];
+    let info = `Propiedad: ${casilla.nombre}<br>`;
+    info += `Matraces: ${casilla.matraces}<br>`;
+    info += `Laboratorio: ${casilla.tieneLaboratorio ? 'Sí' : 'No'}<br>`;
+    info += `Alquiler: $${calcularRenta(casilla)}<br><br>`;
+    info += "Selecciona mejora:";
+    
+    document.getElementById("mejorasTexto").innerHTML = info;
+}
+
+function construirMatraz(){
+    if(propiedadSeleccionada === null) {
+        alert("Selecciona propiedad primero");
+        return;
+    }
+    
+    const jugador = jugadores[turno];
+    const casilla = casillas[propiedadSeleccionada];
+    
+    if(casilla.matraces >= 4) {
+        alert("Máximo de matraces alcanzado");
+        return;
+    }
+    
+    const costoMatraz = 50;
+    
+    if(jugador.dinero >= costoMatraz) {
+        jugador.dinero -= costoMatraz;
+        casilla.matraces++;
+        document.getElementById("construccion").play();
+        alert(`Matraz construido en ${casilla.nombre}. Costo: $${costoMatraz}`);
+        actualizarDinero();
+        actualizarPropiedades();
+        dibujarTablero();
+        cerrarMejoras();
+    } else {
+        alert("Dinero insuficiente");
+    }
+}
+
+function construirLaboratorio(){
+    if(propiedadSeleccionada === null) {
+        alert("Selecciona propiedad primero");
+        return;
+    }
+    
+    const jugador = jugadores[turno];
+    const casilla = casillas[propiedadSeleccionada];
+    
+    if(casilla.tieneLaboratorio) {
+        alert("Ya tiene laboratorio");
+        return;
+    }
+    
+    if(casilla.matraces < 3) {
+        alert("Necesitas 3 matraces para laboratorio");
+        return;
+    }
+    
+    const costoLaboratorio = 200;
+    
+    if(jugador.dinero >= costoLaboratorio) {
+        jugador.dinero -= costoLaboratorio;
+        casilla.tieneLaboratorio = true;
+        document.getElementById("construccion").play();
+        alert(`Laboratorio construido. Costo: $${costoLaboratorio}`);
+        actualizarDinero();
+        actualizarPropiedades();
+        dibujarTablero();
+        cerrarMejoras();
+    } else {
+        alert("Dinero insuficiente");
+    }
+}
+
+function cerrarMejoras(){
+    document.getElementById("ventanaMejoras").style.display = "none"; 
+    ventanaActiva = false;
+    propiedadSeleccionada = null;
+}
+
+function lanzarConfeti(){
+    const confeti = document.getElementById("confeti");
+    const cantidad = 80;
+    for(let i = 0; i < cantidad; i++){
+        const div = document.createElement("div");
+        div.className = "confeti";
+        div.style.left = Math.random() * window.innerWidth + "px";
+        div.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        div.style.width = div.style.height = (4 + Math.random() * 4) + "px";
+        confeti.appendChild(div);
+        setTimeout(() => div.remove(), 1500);
+    }
+}
+
+function verificarGanador(jugador){
+    const monopolios = new Set();
+    const todasCategorias = [...categorias, ...categoriasAdicionales];
+    todasCategorias.forEach(cat => {
+        const catProps = casillas.filter(c => c.tipo === "PROPIEDAD" && c.categoria === cat.nombre);
+        if(catProps.every(c => c.dueno === jugador.nombre)) monopolios.add(cat.nombre);
+    });
+    return monopolios.size >= 5;
+}
+
+// Inicializar el juego
+dibujarTablero();
+document.getElementById("mensaje").textContent = `Turno: ${jugadores[turno].nombre}`;
+</script>
+</body>
+</html>
